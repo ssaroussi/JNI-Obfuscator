@@ -8,7 +8,7 @@ from hashlib import md5
 
 nlp = load('en_core_web_lg')
 
-def most_similar(word: str, excluded_wrods: Set[str]):
+def most_similar(word: str, excluded_words: Set[str]):
     v_word = nlp.vocab[word]
     queries = [w for w in v_word.vocab if w.is_lower ==
                v_word.is_lower and w.prob >= -15]
@@ -25,9 +25,9 @@ def most_similar(word: str, excluded_wrods: Set[str]):
         if s_index == -1:
             return md5(word).hexdigest()
 
-        curr_name = ''.join(
+        current_name = ''.join(
             [i for i in by_similarity[s_index].lower_ if i.isalpha()])
-        if curr_name in excluded_wrods:
+        if current_name in excluded_words:
             s_index += direction
 
             if s_index >= len(by_similarity):
@@ -35,7 +35,7 @@ def most_similar(word: str, excluded_wrods: Set[str]):
                 direction = -1
 
         else:
-            name = curr_name
+            name = current_name
 
     return name
 

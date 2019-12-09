@@ -42,7 +42,16 @@ class ELF():
 
 
     def replace_symbols(self, f_paths: Set[str]):
-        excluded_symbol_hashes: Set[set] = set()
+        def generate_hashed_symbols:
+            excluded_symbol_hashes: Set[set] = set()
+            symbols: Dict[str, str] = dict()
+            
+            for symbol in self._symbols:
+                hashed_name = name_generator.most_similar(symbol.demangled_name, excluded_symbol_hashes)
+                symbols[symbol.mangled_name] = hashed_name
+                excluded_symbol_hashes.add(hashed_name)
+
+            return symbols
 
         if not path.exists(self._hashed_binaries_path):
             makedirs(self._hashed_binaries_path)
@@ -54,12 +63,10 @@ class ELF():
                 next(filter(lambda e : e.name == name, binary.dynamic_symbols), None)
 
             # Consuse symbols
-            for symbol in self._symbols:
-                symbol_obj = find_symbol_by_name(symbol.mangled_name)
+            for symbol_name, symbol_hash in generate_hashed_symbols():
+                symbol_obj = find_symbol_by_name(symbol_name)
                 if symbol_obj is not None:
-                    symbol_hash = name_generator.most_similar(symbol.demangled_name, excluded_symbol_hashes)
                     symbol_obj.name = symbol_hash
-                    excluded_symbol_hashes.add(symbol_hash)
             
             # Write changes to the binary
             binary.write(path.join(self._hashed_binaries_path, basename(f_path)))
